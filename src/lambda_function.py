@@ -1,5 +1,5 @@
 """
-Autor: Tenzin 
+Autor: Tenzin
 Datum: 23. Dezember 2025
 Beschreibung: Lambda-Funktion zur Erkennung von Prominenten via AWS Rekognition.
 Quellen: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/rekognition.html
