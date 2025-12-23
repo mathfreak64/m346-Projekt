@@ -1,11 +1,12 @@
 import urllib.parse
 import json
 import boto3
+import os
 
 s3 = boto3.client("s3")
 rekognition = boto3.client("rekognition")
 
-OUT_BUCKET = "m346-face-recognition-out-teno"
+OUT_BUCKET = os.environ["OUT_BUCKET"]
 
 def lambda_handler(event, context):
     # S3-Event lesen
