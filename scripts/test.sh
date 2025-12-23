@@ -1,4 +1,8 @@
 #!/bin/bash
+# Autor: Tenzin
+# Datum: 23. Dezember 2025
+# Beschreibung: End-to-End Test-Script für den Face Recognition Service
+# Quellen: https://docs.aws.amazon.com/cli/latest/reference/s3api/put-object.html
 set -e
 
 # Verhindert das Hängenbleiben in der Konsole
