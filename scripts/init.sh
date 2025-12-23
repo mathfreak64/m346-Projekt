@@ -85,4 +85,14 @@ else
     --region "$REGION"
 fi
 
-echo "Lambda deployment finished"
+# ==========================
+# 4. Environment Variable setzen
+# ==========================
+echo "Configuring Lambda environment variables..."
+
+aws lambda update-function-configuration \
+  --function-name "$LAMBDA_NAME" \
+  --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" \
+  --region "$REGION"
+
+echo "Lambda environment variables configured"
