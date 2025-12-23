@@ -69,8 +69,12 @@ else
 fi
 
 # ==========================
-# 4. Environment Variable setzen
+# 4. Warten bis Lambda ACTIVE ist
+# ==========================
+echo "Waiting for Lambda to become ACTIVE..."
+aws lambda wait function-active --function-name "$LAMBDA_NAME" --region "$REGION"
+
+# ==========================
+# 5. Environment Variable setzen
 # ==========================
 echo "Configuring Lambda environment variables..."
-aws lambda update-function-configuration --function-name "$LAMBDA_NAME" --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" --region "$REGION"
-echo "Lambda environment variables configured"
