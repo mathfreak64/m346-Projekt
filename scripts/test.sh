@@ -56,3 +56,19 @@ if [ -z "$RESULT_KEY" ]; then
   echo "ERROR: Timeout"
   exit 1
 fi
+
+LOCAL_RESULT="test_result.json"
+
+# 4. Ergebnis herunterladen
+echo "Downloading result JSON to $LOCAL_RESULT ..."
+aws s3 cp "s3://$OUT_BUCKET/$RESULT_KEY" "$LOCAL_RESULT" --region "$REGION"
+
+# 5. Ergebnis anzeigen
+echo ""
+echo "==============================================="
+echo "   FACE RECOGNITION RESULT (JSON CONTENT)      "
+echo "==============================================="
+cat "$LOCAL_RESULT"
+echo ""
+echo "==============================================="
+echo "=== Service test completed successfully ==="
