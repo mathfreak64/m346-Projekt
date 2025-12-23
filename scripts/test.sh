@@ -26,3 +26,33 @@ fi
 # 2. Testbild hochladen
 echo "Uploading test image to s3://$IN_BUCKET/$UPLOAD_KEY ..."
 aws s3 cp "$TEST_IMAGE" "s3://$IN_BUCKET/$UPLOAD_KEY" --region "$REGION"
+
+# 3. Auf Ergebnis warten (Poll-Loop)
+echo "Waiting for Rekognition to process..."
+
+MAX_RETRIES=15
+SLEEP_TIME=3
+COUNT=0
+RESULT_KEY=""
+
+while [ $COUNT -lt $MAX_RETRIES ]; do
+  # Suche nach einer JSON-Datei im results/ Ordner [cite: 68]
+  RESULT_KEY=$(aws s3 ls "s3://$OUT_BUCKET/results/" --recursive \
+    | grep "\.json$" \
+    | awk '{print $4}' \
+    | head -n 1)
+
+  if [ -n "$RESULT_KEY" ]; then
+    echo "SUCCESS: Result JSON found: $RESULT_KEY"
+    break
+  fi
+
+  COUNT=$((COUNT + 1))
+  echo "Waiting... ($COUNT/$MAX_RETRIES)"
+  sleep $SLEEP_TIME
+done
+
+if [ -z "$RESULT_KEY" ]; then
+  echo "ERROR: Timeout"
+  exit 1
+fi
