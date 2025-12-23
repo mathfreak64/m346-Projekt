@@ -1,4 +1,8 @@
 #!/bin/bash
+# Autor: Tenzin 
+# Datum: 23. Dezember 2025
+# Beschreibung: Automatisiertes Setup der AWS Infrastruktur (S3, Lambda, Trigger)
+# Quellen: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/
 set -e
 
 # Verhindert, dass AWS CLI den Output in einen Pager (less) leitet
