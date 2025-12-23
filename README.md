@@ -10,6 +10,13 @@ Es demonstriert einen vollständig automatisierten Cloud-Service zur Gesichtserk
 - [FaceRecognition Service (M346)](#facerecognition-service-m346)
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
   - [1. Einleitung](#1-einleitung)
+  - [2. Architektur](#2-architektur)
+    - [2.1 Architekturdiagramm](#21-architekturdiagramm)
+  - [3. Ressourcenplanung und Konfiguration](#3-ressourcenplanung-und-konfiguration)
+  - [4. Inbetriebnahme](#4-inbetriebnahme)
+    - [Voraussetzungen](#voraussetzungen)
+    - [Schritte](#schritte)
+  - [5. Verwendung und Tests](#5-verwendung-und-tests)
 
 ---
 
@@ -80,3 +87,17 @@ Die Bereitstellung erfolgt vollständig über die Kommandozeile.
    ```
 
 Das Script installiert alle Komponenten, setzt Berechtigungen und konfiguriert den S3-Trigger vollautomatisiert.
+
+## 5. Verwendung und Tests
+
+Ein automatisierter Test prüft die Funktionsfähigkeit des Dienstes:
+
+1. Ein Testbild einer bekannten Person unter `test/test.jpg` bereitstellen.
+2. Test-Script starten:
+   ```bash
+   chmod +x scripts/test.sh
+   ./scripts/test.sh
+   ```
+
+Das Script lädt die Datei hoch, wartet auf die Verarbeitung durch AWS Rekognition (Polling) und lädt das Ergebnis als JSON-Datei herunter.
+Detaillierte Protokolle und Screenshots finden sich in der Datei [testing.md](docs/testing.md).
