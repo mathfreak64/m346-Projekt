@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Verhindert, dass AWS CLI den Output in einen Pager (less) leitet
+export AWS_PAGER=""
+
 echo "=== Initializing Face Recognition Service ==="
 
 # ==========================
@@ -29,21 +32,15 @@ echo ""
 # ==========================
 create_bucket() {
   BUCKET=$1
-
   if aws s3 ls "s3://$BUCKET" >/dev/null 2>&1; then
     echo "Bucket $BUCKET already exists"
   else
     echo "Creating bucket $BUCKET"
-    aws s3api create-bucket \
-      --bucket "$BUCKET" \
-      --region "$REGION"
+    aws s3api create-bucket --bucket "$BUCKET" --region "$REGION"
     echo "Bucket $BUCKET created"
   fi
 }
 
-# ==========================
-# 1. Buckets erstellen
-# ==========================
 create_bucket "$IN_BUCKET"
 create_bucket "$OUT_BUCKET"
 echo ""
@@ -52,12 +49,10 @@ echo ""
 # 2. Lambda ZIP bauen
 # ==========================
 echo "Packaging Lambda function..."
-
 if [ ! -f src/lambda_function.py ]; then
   echo "ERROR: src/lambda_function.py not found"
   exit 1
 fi
-
 zip -j "$ZIP_FILE" src/lambda_function.py >/dev/null
 echo "Lambda package created: $ZIP_FILE"
 echo ""
@@ -65,92 +60,17 @@ echo ""
 # ==========================
 # 3. Lambda erstellen oder updaten
 # ==========================
-if aws lambda get-function \
-  --function-name "$LAMBDA_NAME" \
-  --region "$REGION" >/dev/null 2>&1; then
-
+if aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" >/dev/null 2>&1; then
   echo "Updating existing Lambda function..."
-  aws lambda update-function-code \
-    --function-name "$LAMBDA_NAME" \
-    --zip-file "fileb://$ZIP_FILE" \
-    --region "$REGION"
+  aws lambda update-function-code --function-name "$LAMBDA_NAME" --zip-file "fileb://$ZIP_FILE" --region "$REGION"
 else
   echo "Creating Lambda function..."
-  aws lambda create-function \
-    --function-name "$LAMBDA_NAME" \
-    --runtime "$RUNTIME" \
-    --role "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" \
-    --handler "$HANDLER" \
-    --zip-file "fileb://$ZIP_FILE" \
-    --region "$REGION"
+  aws lambda create-function --function-name "$LAMBDA_NAME" --runtime "$RUNTIME" --role "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" --handler "$HANDLER" --zip-file "fileb://$ZIP_FILE" --region "$REGION"
 fi
 
 # ==========================
 # 4. Environment Variable setzen
 # ==========================
 echo "Configuring Lambda environment variables..."
-
-aws lambda update-function-configuration \
-  --function-name "$LAMBDA_NAME" \
-  --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" \
-  --region "$REGION"
-
-# ==========================
-# 5. Warten bis Lambda ACTIVE
-# ==========================
-echo "Waiting for Lambda to become ACTIVE..."
-aws lambda wait function-active \
-  --function-name "$LAMBDA_NAME" \
-  --region "$REGION"
-
-# ==========================
-# 6. Lambda ARN holen
-# ==========================
-LAMBDA_ARN=$(aws lambda get-function \
-  --function-name "$LAMBDA_NAME" \
-  --region "$REGION" \
-  --query 'Configuration.FunctionArn' \
-  --output text)
-
-echo "Lambda ARN: $LAMBDA_ARN"
-echo ""
-
-# ==========================
-# 7. S3 → Lambda Invoke-Permission
-# ==========================
-echo "Adding S3 invoke permission..."
-
-aws lambda add-permission \
-  --function-name "$LAMBDA_NAME" \
-  --statement-id "s3invoke-$IN_BUCKET" \
-  --action "lambda:InvokeFunction" \
-  --principal s3.amazonaws.com \
-  --source-arn "arn:aws:s3:::$IN_BUCKET" \
-  --region "$REGION" \
-  >/dev/null 2>&1 || true
-
-# ==========================
-# 8. S3 Trigger konfigurieren
-# ==========================
-echo "Configuring S3 trigger..."
-
-aws s3api put-bucket-notification-configuration \
-  --bucket "$IN_BUCKET" \
-  --notification-configuration "{
-    \"LambdaFunctionConfigurations\": [{
-      \"LambdaFunctionArn\": \"$LAMBDA_ARN\",
-      \"Events\": [\"s3:ObjectCreated:*\"],
-      \"Filter\": {
-        \"Key\": {
-          \"FilterRules\": [{
-            \"Name\": \"prefix\",
-            \"Value\": \"uploads/\"
-          }]
-        }
-      }
-    }]
-  }" \
-  --region "$REGION"
-
-echo ""
-echo "=== init.sh completed successfully ==="
+aws lambda update-function-configuration --function-name "$LAMBDA_NAME" --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" --region "$REGION"
+echo "Lambda environment variables configured"
