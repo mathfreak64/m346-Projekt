@@ -61,6 +61,13 @@ Folgende Ressourcen werden durch das `init.sh` Skript vollautomatisch im AWS Lea
   - Trigger: S3 `ObjectCreated:*` mit Prefix `uploads/`
 - **IAM-Berechtigungen**: Verwendung der `LabRole` für den Zugriff auf S3 und Rekognition.
 
+### AWS‑Region
+
+Der Service wird in der AWS‑Region **`us-east-1`** betrieben.
+
+Diese Region wurde gewählt, da Amazon Rekognition (RecognizeCelebrities) dort vollständig unterstützt wird und im AWS Learner Lab zuverlässig verfügbar ist.  
+Die Region wird über die AWS CLI (`aws configure`) gesetzt und ist nicht fest im Code hinterlegt.
+
 ---
 
 ## 4. Inbetriebnahme
