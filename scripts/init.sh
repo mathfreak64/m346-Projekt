@@ -56,7 +56,6 @@ fi
 zip -j "$ZIP_FILE" src/lambda_function.py >/dev/null
 echo "Lambda package created: $ZIP_FILE"
 echo ""
-
 # ==========================
 # 3. Lambda erstellen oder updaten
 # ==========================
@@ -65,11 +64,16 @@ if aws lambda get-function --function-name "$LAMBDA_NAME" --region "$REGION" >/d
   aws lambda update-function-code --function-name "$LAMBDA_NAME" --zip-file "fileb://$ZIP_FILE" --region "$REGION"
 else
   echo "Creating Lambda function..."
-  aws lambda create-function --function-name "$LAMBDA_NAME" --runtime "$RUNTIME" --role "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" --handler "$HANDLER" --zip-file "fileb://$ZIP_FILE" --region "$REGION"
+  aws lambda create-function --function-name "$LAMBDA_NAME" \
+    --runtime "$RUNTIME" \
+    --role "arn:aws:iam::$ACCOUNT_ID:role/$ROLE_NAME" \
+    --handler "$HANDLER" \
+    --zip-file "fileb://$ZIP_FILE" \
+    --region "$REGION"
 fi
 
 # ==========================
-# 4. Warten bis Lambda ACTIVE ist
+# 4. Warten bis Lambda ACTIVE ist (WICHTIG!)
 # ==========================
 echo "Waiting for Lambda to become ACTIVE..."
 aws lambda wait function-active --function-name "$LAMBDA_NAME" --region "$REGION"
@@ -78,7 +82,12 @@ aws lambda wait function-active --function-name "$LAMBDA_NAME" --region "$REGION
 # 5. Environment Variable setzen
 # ==========================
 echo "Configuring Lambda environment variables..."
+aws lambda update-function-configuration \
+  --function-name "$LAMBDA_NAME" \
+  --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" \
+  --region "$REGION"
 
+echo "Environment variable OUT_BUCKET set to $OUT_BUCKET"
 # ==========================
 # 6. Berechtigung & S3 Trigger
 # ==========================
