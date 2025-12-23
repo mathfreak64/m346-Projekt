@@ -95,4 +95,62 @@ aws lambda update-function-configuration \
   --environment "Variables={OUT_BUCKET=$OUT_BUCKET}" \
   --region "$REGION"
 
-echo "Lambda environment variables configured"
+# ==========================
+# 5. Warten bis Lambda ACTIVE
+# ==========================
+echo "Waiting for Lambda to become ACTIVE..."
+aws lambda wait function-active \
+  --function-name "$LAMBDA_NAME" \
+  --region "$REGION"
+
+# ==========================
+# 6. Lambda ARN holen
+# ==========================
+LAMBDA_ARN=$(aws lambda get-function \
+  --function-name "$LAMBDA_NAME" \
+  --region "$REGION" \
+  --query 'Configuration.FunctionArn' \
+  --output text)
+
+echo "Lambda ARN: $LAMBDA_ARN"
+echo ""
+
+# ==========================
+# 7. S3 → Lambda Invoke-Permission
+# ==========================
+echo "Adding S3 invoke permission..."
+
+aws lambda add-permission \
+  --function-name "$LAMBDA_NAME" \
+  --statement-id "s3invoke-$IN_BUCKET" \
+  --action "lambda:InvokeFunction" \
+  --principal s3.amazonaws.com \
+  --source-arn "arn:aws:s3:::$IN_BUCKET" \
+  --region "$REGION" \
+  >/dev/null 2>&1 || true
+
+# ==========================
+# 8. S3 Trigger konfigurieren
+# ==========================
+echo "Configuring S3 trigger..."
+
+aws s3api put-bucket-notification-configuration \
+  --bucket "$IN_BUCKET" \
+  --notification-configuration "{
+    \"LambdaFunctionConfigurations\": [{
+      \"LambdaFunctionArn\": \"$LAMBDA_ARN\",
+      \"Events\": [\"s3:ObjectCreated:*\"],
+      \"Filter\": {
+        \"Key\": {
+          \"FilterRules\": [{
+            \"Name\": \"prefix\",
+            \"Value\": \"uploads/\"
+          }]
+        }
+      }
+    }]
+  }" \
+  --region "$REGION"
+
+echo ""
+echo "=== init.sh completed successfully ==="
