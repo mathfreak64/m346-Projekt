@@ -118,6 +118,7 @@ Hinweis: Die individuellen Beiträge und die zeitliche Abfolge der Arbeiten sind
 
 ### Reflexion Tenzin
 
+Positiv: Die Arbeit hat mein Verständnis für ereignisgesteuerte Cloud-Architekturen vertieft. Die Automatisierung mit Bash-Skripten war sehr lehrreich, da ich lernte, wie man API-Antworten direkt verarbeitet. Verbesserung: Bei zukünftigen Projekten würde ich auf Infrastructure-as-Code Tools wie Terraform setzen, um Ressourcen-Abhängigkeiten noch sauberer zu verwalten und Race-Conditions beim Erstellen der Trigger zu vermeiden.
 
 ### Reflexion Ivano
 
