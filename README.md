@@ -35,3 +35,48 @@ Der Service nutzt eine ereignisgesteuerte Architektur:
 ### 2.1 Architekturdiagramm
 
 ![Architekturdiagramm](image-1.png)
+
+---
+
+## 3. Ressourcenplanung und Konfiguration
+
+Folgende Ressourcen werden durch das `init.sh` Skript vollautomatisch im AWS Learner-Lab erstellt:
+
+- **S3 Buckets**
+  - In-Bucket: `m346-face-recognition-in-[ACCOUNT-ID]`
+  - Out-Bucket: `m346-face-recognition-out-[ACCOUNT-ID]`
+- **Lambda-Funktion**
+  - Name: `m346-face-recognition`
+  - Runtime: **Python 3.9**
+  - Trigger: S3 `ObjectCreated:*` mit Prefix `uploads/`
+- **IAM-Berechtigungen**
+  - Verwendung der `LabRole` für den Zugriff auf S3 und Rekognition
+
+---
+
+## 4. Inbetriebnahme
+
+Die Bereitstellung erfolgt vollständig über die Kommandozeile.
+
+### Voraussetzungen
+
+- AWS Learner Lab mit gültigen Credentials.
+- Konfigurierte AWS CLI (`aws configure`).
+- Bash-kompatible Umgebung (Linux, macOS oder WSL).
+
+### Schritte
+
+1. Repository klonen und in das Verzeichnis wechseln:
+
+   ```bash
+   git clone <repository-url>
+   cd <repository-name>
+   ```
+
+2. Initialisierungs-Script ausführbar machen und ausführen:
+   ```bash
+   chmod +x scripts/init.sh
+   ./scripts/init.sh
+   ```
+
+Das Script installiert alle Komponenten, setzt Berechtigungen und konfiguriert den S3-Trigger vollautomatisiert.
