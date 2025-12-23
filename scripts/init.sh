@@ -78,3 +78,41 @@ aws lambda wait function-active --function-name "$LAMBDA_NAME" --region "$REGION
 # 5. Environment Variable setzen
 # ==========================
 echo "Configuring Lambda environment variables..."
+
+# ==========================
+# 6. Berechtigung & S3 Trigger
+# ==========================
+echo "Adding S3 invoke permission to Lambda..."
+aws lambda add-permission \
+  --function-name "$LAMBDA_NAME" \
+  --statement-id "s3invoke-$ACCOUNT_ID" \
+  --action "lambda:InvokeFunction" \
+  --principal s3.amazonaws.com \
+  --source-arn "arn:aws:s3:::$IN_BUCKET" \
+  --region "$REGION" >/dev/null 2>&1 || true
+
+# Lambda ARN für den Trigger abrufen
+LAMBDA_ARN=$(aws lambda get-function --function-name "$LAMBDA_NAME" --query 'Configuration.FunctionArn' --output text)
+
+echo "Configuring S3 trigger for prefix 'uploads/'..."
+aws s3api put-bucket-notification-configuration \
+  --bucket "$IN_BUCKET" \
+  --notification-configuration "{
+    \"LambdaFunctionConfigurations\": [{
+      \"LambdaFunctionArn\": \"$LAMBDA_ARN\",
+      \"Events\": [\"s3:ObjectCreated:*\"],
+      \"Filter\": {
+        \"Key\": {
+          \"FilterRules\": [{
+            \"Name\": \"prefix\",
+            \"Value\": \"uploads/\"
+          }]
+        }
+      }
+    }]
+  }" --region "$REGION"
+
+echo ""
+echo "=== init.sh completed successfully ==="
+echo "Input Bucket : $IN_BUCKET"
+echo "Output Bucket: $OUT_BUCKET"
